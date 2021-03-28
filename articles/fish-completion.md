@@ -3,7 +3,7 @@ title: "fishの補完について + `catkin --help` から補完を自動生成�
 emoji: 🐠
 type: tech
 topics: [fish]
-published: false
+published: true
 ---
 
 fish の好きなところを問われたときに、補完を挙げる人は多いのではないかと思います．かく言う私もその一人で、特に画像のようにグレーでコマンドが浮かびあがっているくる点は気に入っています．
@@ -32,11 +32,11 @@ fish の好きなところを問われたときに、補完を挙げる人は多
 
 ### `~/.local/share/fish/generated_completions`
 
-`fish_update_completions` というコマンドを使うと、man をパースして補完スクリプトを生成することができます．そのデフォルトの出力先です．
+`fish_update_completions`というコマンドを使うと、man をパースして補完スクリプトを生成することができます．そのデフォルトの出力先です．
 例えば、`cmake`コマンドは fish,CMake いずれの公式からも補完を提供されていません．しかし、man があるので、`fish_update_completions`を一度叩くことにより、補完の恩恵を受けることができます．
 ただし、`fish_update_completions`も万能ではなく、man から読み取れないことをサジェストすることはできないので、限界はあります．
 
-例えば、`docker run [TAB]`としたときに、手元にあるイメージが候補として出てくるのは、以下のコマンドの出力をもらっているからです．こういったことは man 等のパースでは決してできないので、人間が個別に考えた実装にはどうしても敵いません．
+例えば、`docker run [TAB]`としたときに、手元にあるイメージが候補として出てくるのは、以下のコマンドの出力をもらっているからです．こういったことは man 等のパースでは決してできません．
 
 ```shell
 docker images --format "{{.Repository}}:{{.Tag}}" | command grep -v '<none>'

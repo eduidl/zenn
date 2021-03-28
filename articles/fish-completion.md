@@ -1,5 +1,5 @@
 ---
-title: "fishの補完について + `catkin --help`から自動生成する試み"
+title: "fishの補完について + `catkin --help` から補完を自動生成する試み"
 emoji: 🐠
 type: tech
 topics: [fish]
@@ -8,45 +8,45 @@ published: false
 
 fish の好きなところを問われたときに、補完を挙げる人は多いのではないかと思います．かく言う私もその一人で、特に画像のようにグレーでコマンドが浮かびあがっているくる点は気に入っています．
 
-![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/141207/e4f2a457-a3a7-c7f3-b8ac-6a85332e4498.png)
+![](https://storage.googleapis.com/zenn-user-upload/1m1mmprms26emn3ybtefy8uy3g4j)
 
 さて、そんな便利な補完ですが、当然勝手に生えているわけではなく、それなりに便利に使おうと思うと、基本的に手作業で実装する必要があります．fish は決して多く使われているわけではないため、どうしても bash や zsh に比べると補完が実装されている可能性は低いです．
 
-そんなときに、自分でなんとかできるように、書き方を学ぶ記事です．後半で自動生成も試みます．
+そんなときに、自分でなんとかできるようにと思って、補完について調べたことをまとめました．最後に補完スクリプトの自動生成の試みについても書きます．
 
 ## 既存のスクリプトたち
 
 そもそも補完スクリプトがどこにあるかご存知でしょうか？`$fish_complete_path`で確認することができます．
-自分の環境だと以下の通りでした（括弧内は未使用）．
+自分の環境だと以下の通りでした（\*は未使用）．
 
 - `~/.config/fish/completions`
 - `/etc/fish/completions`
-- (`/usr/share/ubuntu/fish/vendor_completions.d`)
-- (`/usr/local/share/fish/vendor_completions.d`)
+- `/usr/share/ubuntu/fish/vendor_completions.d` \*
+- `/usr/local/share/fish/vendor_completions.d` \*
 - `/usr/share/fish/vendor_completions.d`
-- (`/var/lib/snapd/desktop/fish/vendor_completions.d`)
+- `/var/lib/snapd/desktop/fish/vendor_completions.d`\*
 - `/usr/share/fish/completions`
 - `~/.local/share/fish/generated_completions`
 
 それぞれの中身について下から見ていきます．
 
-### `~/.local/share/fish/generated_completions/`
+### `~/.local/share/fish/generated_completions`
 
 `fish_update_completions` というコマンドを使うと、man をパースして補完スクリプトを生成することができます．そのデフォルトの出力先です．
 例えば、`cmake`コマンドは fish,CMake いずれの公式からも補完を提供されていません．しかし、man があるので、`fish_update_completions`を一度叩くことにより、補完の恩恵を受けることができます．
 ただし、`fish_update_completions`も万能ではなく、man から読み取れないことをサジェストすることはできないので、限界はあります．
 
-例えば、`docker run [TAB]`としたときに、手元にあるイメージが候補として出てくるのは、以下のコマンドの出力をもらっているからです．こういったことは man 等のパースでは決してできないので、手作業での実装にはどうしても敵いません．
+例えば、`docker run [TAB]`としたときに、手元にあるイメージが候補として出てくるのは、以下のコマンドの出力をもらっているからです．こういったことは man 等のパースでは決してできないので、人間が個別に考えた実装にはどうしても敵いません．
 
-```terminal
-$ docker images --format "{{.Repository}}:{{.Tag}}" | command grep -v '<none>'
+```shell
+docker images --format "{{.Repository}}:{{.Tag}}" | command grep -v '<none>'
 ```
 
 https://github.com/docker/cli/blob/master/contrib/completion/fish/docker.fish#L76-L78
 
-そういうこともあり優先順位が一番下にされているのでしょう．
+そういうこともあり優先順位が一番低くされているのでしょう．
 
-### `/usr/share/fish/completions/`
+### `/usr/share/fish/completions`
 
 ここには fish 自体がメンテしているスクリプトが置いてあります．Linux コマンドや、主要なコマンド（`git`, `gcc`, `cargo` など）の補完スクリプトがおいてあります．
 
@@ -59,7 +59,7 @@ $ exa /usr/share/fish/completions/ | wc -w
 
 結構多い．
 
-### `/usr/share/fish/vendor_completions.d/`
+### `/usr/share/fish/vendor_completions.d`
 
 サードパーティライブラリから公式に提供される場合の置き場です．
 自分の環境だと、以下の 2 つだけがありました．
@@ -67,11 +67,11 @@ $ exa /usr/share/fish/completions/ | wc -w
 - `docker.fish`
 - `fwupdmgr.fish`
 
-### `/etc/fish/completions/`
+### `/etc/fish/completions`
 
 システム管理者が全ユーザ共通の設定として置きたい場合に使う．
 
-### `~/.config/fish/completions/`
+### `~/.config/fish/completions`
 
 ユーザ設定用です．
 `gitignore.fish`や`fisher.fish`等、fisher 系の補完もここに置かれていますし、自分で何か追加したくなったらここに置くことになるでしょう．
@@ -126,18 +126,16 @@ https://qiita.com/ryotako/items/31f9c9153bece58f2d98
 
 ## 自動生成 (WIP)
 
-`catkin`コマンドの補完を作ろうと思って書き始めたものの、正直思いました「面倒だと」．でやめました．
-しかし思うわけです．man をパース^[普段見ている man ページは自動生成されているものなので、元ファイルはもう少し機械に優しいです．`/usr/share/man/man1/*.1.gz`とか適当に見てみてください．]して生成できるくらいのレベルなら、`--help`の結果をパースしたらできるのではないかと．
+色々調べてさてわかったぞと、`catkin`コマンド（中身は重要ではないので知らなくてよいです）の補完を作ろうと思って書き始めたものの、正直思いました……面倒だと（メンテナの方々には頭があがりません）．でやめました．
+しかし思うわけです．man をパース^[普段見ている man ページは自動生成されているものなので、元ファイルはもう少し機械に優しいです．`/usr/share/man/man1/*.1.gz`とか適当に見てみてください．]して生成できるくらいのレベルなら、`--help`の結果をパースすればできるのではないかと．
 
-で、`catkin [subcommand] --help`の結果をパースして、オプションについての補完を生成するスクリプトを作りました．
+ということで、`catkin [subcommand] --help`の結果をパースして、オプションについての補完を生成するスクリプトを作りました．
 
 https://github.com/eduidl/completion-generator
 
-以前から少し気になっていたパーサコンビネータを使ってパースしています．言語としては Rust を、パーサコンビネータとしては nom を使っています．
+以前から少し気になっていたパーサコンビネータを使ってパースしています^[正直に言うとこっちが目的でした]．言語としては Rust を、パーサコンビネータとしては [nom](https://crates.io/crates/nom) を使っています．
 
-https://crates.io/crates/nom
-
-できたものがこちら（https://github.com/eduidl/catkin.fish/blob/main/catkin.fish にも置いておきます）．これを手打ちすると思うと中々大変そうです．
+できたものがこちら（同じものを https://github.com/eduidl/catkin.fish/blob/main/catkin.fish にも置いています）．これを手打ちすると思うと中々大変そうです．
 
 :::details catkin.fish
 
@@ -313,4 +311,4 @@ complete -c catkin -n '__fish_seen_subcommand_from profile' -s w -l workspace -d
 
 :::
 
-今はまだ、catkin 決め打ちで汎用性が低いので、別のコマンドにも対応できるといいなと思っています．
+今はまだ、`catkin` 決め打ちで汎用性が低いので、他のコマンドにもある程度対応できるといいなと思っています．

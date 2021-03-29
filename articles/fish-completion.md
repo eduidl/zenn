@@ -122,7 +122,7 @@ end
 
 https://fishshell.com/docs/current/cmds/complete.html
 
-https://qiita.com/ryotako/items/31f9c9153bece58f2d98
+https://qiita.com/nil2/items/128363097ac031653ea1
 
 ## 自動生成 (WIP)
 

@@ -1,5 +1,5 @@
 ---
-title: "fishの補完について + `catkin --help` から補完を自動生成する試み"
+title: 'fishの補完について + `catkin --help` から補完を自動生成する試み'
 emoji: 🐠
 type: tech
 topics: [fish]
@@ -52,7 +52,7 @@ https://github.com/docker/cli/blob/master/contrib/completion/fish/docker.fish#L7
 
 https://github.com/fish-shell/fish-shell/tree/master/share/completions
 
-```terminal
+```sh-session
 $ exa /usr/share/fish/completions/ | wc -w
 777
 ```
@@ -78,9 +78,9 @@ $ exa /usr/share/fish/completions/ | wc -w
 
 また、補完スクリプトを生成するコマンドが存在したり、argcomplete を利用して生成できる場合は、出力先をここにします．
 
-```terminal
+```sh-session
 $ rustup completions fish >~/.config/fish/completions/rustup.fish
-$ register-python-argcomplete --shell fish $pipx >~/.config/fish/completions/pipx.fish
+$ register-python-argcomplete --shell fish pipx >~/.config/fish/completions/pipx.fish
 ```
 
 自分は以下のような関数を用意して、たまに実行しています．

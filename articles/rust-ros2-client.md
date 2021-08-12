@@ -1,5 +1,5 @@
 ---
-title: RustでROS2
+title: RustのROS2クライアントを書いた
 emoji: ⚙️
 type: tech
 topics: [ros, ros2, rust]

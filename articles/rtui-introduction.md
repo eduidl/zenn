@@ -3,7 +3,7 @@ title: "[ROS] ノードやトピックの情報を相互に辿れる自作TUIツ
 emoji: 🤖
 type: tech
 topics: [ros, ros1, ros2, tui]
-published: false
+published: true
 ---
 
 タイトルの通り ROS のノードやトピックの情報を相互に辿れる自作 TUI ツールを作ったので紹介します。

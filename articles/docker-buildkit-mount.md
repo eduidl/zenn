@@ -27,7 +27,7 @@ https://docs.docker.com/engine/reference/builder/
 
 https://docs.docker.com/engine/reference/builder/#run---mount
 
-マウントする対象の種類を bind, cache, secret, ssh といったものの中から指定することができ、`git clone`したいときなんかは secret が使えます。
+マウントする対象の種類を bind, cache, secret, ssh といったものの中から指定することができ、`git clone`したいときは ssh が使えます。
 
 例えば、次のような内容の Dockerfile を作成して単純にビルドすると、当然 Permission denied となります。
 
@@ -96,7 +96,7 @@ $ DOCKER_BUILDKIT=1 docker build --ssh default --progress plain build .
 :
 ```
 
-これはデフォルトで uid=0 ユーザにしか見えないようになっているからで、Dockerfile 内で `uid=1000`（`useradd -u 1000`と対応）と明示的に指定してあげると再び動くようになります。
+これはデフォルトで uid=0 ユーザにしか見えないようになっているからで、Dockerfile 内で `uid=1000`（`useradd -u 1000`と対応）と明示的に指定すると再び動きます。
 
 ```Dockerfile
 FROM ubuntu

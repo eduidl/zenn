@@ -8,12 +8,12 @@ published: true
 
 よくわからなかったので、調べて整理しようとした試み。
 
-## Compuute Capability (CC)
+## Compuute Capability
 
 GPU ハードウェアがサポートする機能を識別するためのもので、例えば RTX 3000 台であれば 8.6 であるなど、そのハードウェアに対応して一意に決まる。
 アーキテクチャの世代が新しくなり、機能が増えるほど、この数字も上がっていく。
 
-以下のリンク先に、Compute Capability と機能の対応表があるが、これを見ると（少なくとも執筆時点で）CC 7.x 以上でテンソルコアが使えるといったことがわかる。
+以下のリンク先に、Compute Capability と機能の対応表があるが、これを見ると（少なくとも執筆時点で） Compute Capability 7.x 以上でテンソルコアが使えるといったことがわかる。
 
 https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities
 
@@ -62,8 +62,8 @@ https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html#cuda-12-0-rel
 
 https://docs.nvidia.com/deploy/cuda-compatibility/index.html#faq
 
-また、CUDA 12.0 で CUDA Libraries が CC 3.5, 3.7 (Kepler) で使えなくなるなど、前方互換性が常に保たれるわけではなさそう。
-実際にやってみたが、CUDA 11.0 だと 9.0 向けには当然コンパイルできず、3.5 は Warnign が表示された。
+また、CUDA 12.0 で CUDA Libraries が Compute Capability 3.5, 3.7 (Kepler) で使えなくなるなど、前方互換性が常に保たれるわけではなさそう。
+実際にやってみたが、CUDA 11.0 だと 9.0 向けには当然コンパイルできず、3.5 は Warning が表示された。
 
 ```
 $ nvcc -V
@@ -102,7 +102,7 @@ NVIDIA が提供していない OS だと入れづらい。汎用 PC なら Dock
 
 ## もっと詳しく
 
-一旦流したが、CUDA Toolkit と Compute Capability の互換性をより正確に理解するためには、「`nvcc` の `--gpu-architecture`と `--gpu-code` とは何か」を理解しておく必要がある。
+一旦流したが、CUDA Toolkit と Compute Capability の互換性をより正確に理解するためには、「`nvcc` の `-arch`と `-code` とは何か」を理解しておく必要がある。
 以下のような適当な Hello World を書いて実行することを考える。
 
 ```cpp:hello.cu
@@ -119,7 +119,7 @@ int main() {
 }
 ```
 
-私が使っている GPU の Compute Capability は 6.1 なので `--gpu-architecture compute_61 --gpu-code sm_61`を指定すると正しく実行できる。
+私が使っている GPU の Compute Capability は 6.1 なので `-arch compute_61 -code sm_61`を指定すると正しく実行できる。
 
 ```sh-session
 $ nvcc -V
@@ -128,15 +128,15 @@ Copyright (c) 2005-2022 NVIDIA Corporation
 Built on Mon_Oct_24_19:12:58_PDT_2022
 Cuda compilation tools, release 12.0, V12.0.76
 Build cuda_12.0.r12.0/compiler.31968024_0
-$ nvcc hello.cu --gpu-architecture compute_61 --gpu-code sm_61 && ./a.out
+$ nvcc hello.cu -arch compute_61 -code sm_61 && ./a.out
 Hello World from GPU!
 # 以下と同様
-# nvcc hello.cu --generate-code arch=compute_61,code=sm_61 && ./a.out
+# nvcc hello.cu -gencode arch=compute_61,code=sm_61 && ./a.out
 ```
 
 なぜ 2 つも指定する必要があるのか疑問に思うかもしれない。これらには以下のような違いがある。
 
-- architecture: 中間表現である PTX (Parallel Thread eXecution) をどのように生成するか決定するための指定
+- arch: 中間表現である PTX (Parallel Thread eXecution) をどのように生成するか決定するための指定
 - code: PTX から生成されるアセンブリである SASS[^1] と、さらにその先のバイナリ（cubin）を生成する指示
 
 また、PTX には Compute Capability に関して後方互換性があり、compute_xy 向けに生成されたものは sm_xy**以上**向けにコンパイルができる。
@@ -144,19 +144,22 @@ Hello World from GPU!
 例えば、あまり意味はない（むしろ最適でないコードが吐かれる可能性がある）だが以下のようにすることもできる。当然逆は失敗する。
 
 ```sh-session
-$ nvcc hello.cu --gpu-architecture compute_50 --gpu-code sm_61 && ./a.out
+$ nvcc hello.cu -arch compute_50 -code sm_61 && ./a.out
 Hello World from GPU!
-$ nvcc hello.cu --gpu-architecture compute_61 --gpu-code sm_50
+$ nvcc hello.cu -arch compute_61 -code sm_50
 nvcc fatal   : Incompatible code generation requested: arch='compute_61', code='sm_50'
 ```
 
-PTX に互換性はあると書いたが、バイナリの方は当然互換性がない。例えば、sm_50 向けに吐くと何も出力されない[^2]。
+PTX には後方互換性はあると書いたが、バイナリの方は互換性は制限されている。例えば、sm_50 向けに吐くと何も出力されない[^2]。
+以下のドキュメントによるとデスクトップ向けに限り、マイナーバージョンに関して後方互換性があるよう
+
+https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#binary-compatibility
 
 ```sh-session
-$ nvcc hello.cu --gpu-architecture compute_50 --gpu-code sm_50 && ./a.out
+$ nvcc hello.cu -arch compute_50 -code sm_50 && ./a.out
 ```
 
-ここで、疑問に思うかもしれない。あの~~秘密主義の~~ NVIDIA が配布している共有ライブラリはなんで動くんだと。
+ここで、疑問に思うかもしれない。あの~~秘密主義の~~ NVIDIA が配布している共有ライブラリはなんで動くんだ、と。
 種を明かせば単純な話で、あらゆるターゲット向けに吐いてまとめているだけだ[^3]。
 `cuobjdump`というコマンドで中を見れば一目瞭然。
 
@@ -186,7 +189,7 @@ PTX file    4: libcublas.4.sm_90.ptx
 PTX file    5: libcublas.5.sm_90.ptx
 ```
 
-はじめにコンパイルオプションを付けずにコンパイルしたら sm_52 向けにコンパイルされていたので、実際これは JIT で動いた。
+逆に、コンパイルオプションを付けないと意図せず JIT で動いていたということもありそうなので注意。
 
 ```sh-session
 $ nvcc hello.cu && ./a.out
@@ -216,10 +219,10 @@ compile_size = 64bit
 compressed
 ```
 
-ちなみに PTX を吐いて実行するには `--gpu-code` にも virtual architecture を指定すればよい。
+ちなみに PTX を吐いて実行するには `-code` にも virtual architecture を指定すればよい。
 
 ```sh-session
-$ nvcc hello.cu --gpu-architecture compute_50 --gpu-code compute_50 && ./a.out
+$ nvcc hello.cu -arch compute_50 -code compute_50 && ./a.out
 Hello World from GPU!
 $ cuobjdump a.out
 
@@ -235,6 +238,8 @@ compressed
 ### 参考
 
 https://qiita.com/sonots/items/1c60ccb6ffec6d04b223
+
+https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compilation-with-nvcc
 
 https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/
 

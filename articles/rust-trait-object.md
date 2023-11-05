@@ -85,7 +85,7 @@ impl AsAny for Triangle {
 ただ、これをすると `Box<dyn Trait>` にも `AsAny` が実装され、`as_ref` 等を明示的に呼ばないと、`Box<dyn Trait>` から直接 `&dyn Any` に変換され、`&T` へのダウンキャストに失敗する[^2]ことには注意です。
 
 ```rust
-impl<T> AaAny for T
+impl<T> AsAny for T
 where
     T: 'static,
 {

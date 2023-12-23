@@ -1,5 +1,5 @@
 ---
-title: [Rust] ユーザ定義型をシリアライズしてZenohでやり取りする
+title: "[Rust] ユーザ定義型をシリアライズしてZenohでやり取りする"
 emoji: 📮
 type: tech
 topics: [rust, zenoh]

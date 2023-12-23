@@ -1,5 +1,5 @@
 ---
-title: SixelでターミナルにWebカメラの映像を表示してみる
+title: [Rust] SixelでターミナルにWebカメラの映像を表示してみる
 emoji: 📸
 type: tech
 topics: [rust, sixel]

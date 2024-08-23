@@ -29,7 +29,7 @@ https://eduidl.github.io/history-api-demo/
 
 JavaScript のコード自体は20行もありません。
 
-https://github.com/eduidl/history-api-demo/blob/main/index.html#L37-L53
+https://github.com/eduidl/history-api-demo/blob/main/index.html#L37-L54
 
 軽く説明すると、初めてページを開くとこの箇所で履歴が追加されます。
 History API といえども、直接過去の履歴を変えることはできないので、 `history.replaceState` で「現在の履歴」を「広告用の履歴」に変えて、本来の「現在の履歴」を `history.pushState` で入れ直しているのがみそでしょうか。
@@ -47,11 +47,12 @@ if (performance.getEntriesByType("navigation")[0].type !== "reload") {
 そして、ユーザが戻るボタンを押すと、`history.replaceState` で追加した「広告用の履歴」によって popstate イベントが発行され、登録したイベントハンドラが呼ばれます。
 `e.state` には `history.replaceState` の第1引数のコピーが格納されているため、`e.state.ad === 1` で照合できます。
 
-```js 
+```js
+const modal = new bootstrap.Modal(
+  document.getElementById("modal")
+);
+
 window.addEventListener("popstate", (e) => {
-  const modal = new bootstrap.Modal(
-    document.getElementById("modal")
-  );
   if (e.state && e.state.ad === 1) {
     modal.show();
   } else {

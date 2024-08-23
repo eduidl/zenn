@@ -1,7 +1,7 @@
 ---
 title: "ブラウザバック広告のデモ"
 emoji: 🙅
-type: idea
+type: tech
 topics: [javascript, historyapi]
 published: true
 ---
